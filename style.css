@@ -1,6 +1,7 @@
 :root {
     /* CSS HEX */
-    --onyx: #141414ff;
+    --text-main: #4A1C1B;
+    --merlot: #722F37;
     --white-smoke: #f5f5f5ff;
     --beige: #f2e2baff;
     --green: #86a861ff;
@@ -9,12 +10,15 @@
 
 body {
     background-color: var(--beige);
-    color: var(--onyx);
+    color: var(--text-main);
     overflow: hidden;
+    user-select: none;
 }
 
 .date {
     font-size: 1rem;
+    font-weight: 400;
+    color: var(--merlot);
 }
 
 .time {
@@ -22,22 +26,27 @@ body {
     background: whitesmoke;
     padding: 0.25rem 1rem;
     border-radius: 10px;
+    font-weight: 500;
 }
 
 .settings {
     font-size: 2rem;
     padding: 1rem;
+    color: var(--merlot);
 }
 
 .timer {
     font-size: 5rem;
     margin-bottom: -5rem;
+    font-family: "Fjalla One", sans-serif;
+    font-weight: 400;
+    font-style: normal;
 }
 
 .timer-progress {
     font-size: 2rem;
     padding: 1rem;
-    margin-top: -5rem;
+    margin-top: -6rem;
 }
 
 .inprogress {
@@ -62,12 +71,36 @@ li {
     margin: 3rem;
 }
 
+.task {
+    margin-top: -2rem;
+    color: var(--merlot);
+    font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+    font-size: 2rem;
+    font-style: italic;
+    font-weight: 500;
+}
+
+.task .label {
+    display: inline-block;
+    text-align: center;
+}
+
+.underline {
+    display: block;
+    width: 150px;
+    max-width: 300px;
+    height: 2px;
+    margin: -0.5rem auto 0;
+    background: var(--merlot);
+    border-radius: 10px;
+}
+
 input[type="text"] {
     background-color: var(--white-smoke);
     border: 2px solid transparent;
     padding: 12px 14px;
     border-radius: 12px;
-    color: var(--onyx);
+    color: var(--text-main);
     width: 320px;
     max-width: 90%;
     transition: border-color 0.12s ease, box-shadow 0.12s ease, transform 0.08s ease;
