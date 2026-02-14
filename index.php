@@ -219,7 +219,7 @@ $totalSessions = 4;        // 4 pomodoro cycles before done
     function updateClock() {
         const now = new Date();
         curTime.innerHTML = now.toLocaleString('en-GB', {
-            hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+            hour: '2-digit', minute: '2-digit', hour12: false
         });
     }
     setInterval(updateClock, 1000);
