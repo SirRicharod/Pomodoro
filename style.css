@@ -66,6 +66,10 @@ body {
     color: var(--brown);
 }
 
+.active {
+    color: var(--merlot);
+}
+
 .completed {
     color: var(--green);
 }
