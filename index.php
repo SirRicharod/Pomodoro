@@ -48,19 +48,19 @@
             </div>
             <div class="timer-progress">
                 <ul>
-                    <li class="completed">
+                    <li class="inprogress">
                         <i class="bi bi-1-circle-fill"></i>
                     </li>
-                    <li class="completed">
+                    <li class="inprogress">
                         <i class="bi bi-arrow-right-short"></i>
                     </li>
-                    <li class="completed">
+                    <li class="inprogress">
                         <i class="bi bi-2-circle-fill"></i>
                     </li>
-                    <li class="completed">
+                    <li class="inprogress">
                         <i class="bi bi-arrow-right-short"></i>
                     </li>
-                    <li class="completed">
+                    <li class="inprogress">
                         <i class="bi bi-3-circle-fill"></i>
                     </li>
                     <li class="inprogress">
@@ -88,10 +88,17 @@
             </div>
         </div>
         <div class="p-1">
-            <input type="text" placeholder="What task should we focus on?" class="w-50">
+            <input type="text" placeholder="What task should we focus on?" id="task-input">
+
+            <div id="task-text" class="task-text"></div>
         </div>
         <div class="p-3">
-            <button>Get Started</button>
+            <button onclick="StartTimer()" id="start-btn" class="start-btn">Get Started</button>
+
+            <div id="stop-btns" class="stop-btns">
+                <button class="pause-btn" onclick="PauseTimer()">Pause Timer</button>
+                <button class="stop-btn" onclick="StopTimer()">Stop Timer</button>
+            </div>
         </div>
     </section>
 
@@ -99,7 +106,12 @@
 
 <script>
     const curTime = document.getElementById("time");
+    const inputTask = document.getElementById("task-input");
+    const textTask = document.getElementById("task-text");
+    const startBtn = document.getElementById("start-btn");
+    const stopBtns = document.getElementById("stop-btns");
 
+        // Display current time
     function updateClock() {
         const now = new Date();
         const options = {
@@ -115,6 +127,35 @@
     // Run it every 1000ms (1 second)
     setInterval(updateClock, 1000);
     updateClock(); // Run immediately so there's no 1-second delay
+
+    // Start the 25min timer
+    function StartTimer() {
+        if (inputTask.value.trim() === "") {
+            // Display message    
+            return;
+        }
+        let task = inputTask.value;
+        inputTask.style.display = "none";
+        textTask.style.display = "block";
+        textTask.innerHTML = task;
+        stopBtns.style.display = "block";
+        startBtn.style.display = "none";
+
+    }
+
+    // Stop the Timer and reset to start
+    function StopTimer() {
+        inputTask.style.display = "inline-block";
+        inputTask.value = null;
+        textTask.style.display = "none";
+        startBtn.style.display = "inline-block";
+        stopBtns.style.display = "none";
+    }
+
+    // Pause the timer and change button to resume
+    function PauseTimer() {
+
+    }
 </script>
 
 </html>

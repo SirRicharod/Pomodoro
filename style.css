@@ -6,6 +6,8 @@
     --beige: #f2e2baff;
     --green: #86a861ff;
     --brown: #a44a3fff;
+    --pause: rgb(237, 193, 80);
+    --stop: rgb(237, 83, 80);
 }
 
 body {
@@ -27,6 +29,12 @@ body {
     padding: 0.25rem 1rem;
     border-radius: 10px;
     font-weight: 500;
+    display: inline-block;
+    min-width: 8ch;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    -webkit-font-feature-settings: "tnum" 1;
+    font-feature-settings: "tnum" 1;
 }
 
 .settings {
@@ -41,6 +49,11 @@ body {
     font-family: "Fjalla One", sans-serif;
     font-weight: 400;
     font-style: normal;
+    min-width: 8ch;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    -webkit-font-feature-settings: "tnum" 1;
+    font-feature-settings: "tnum" 1;
 }
 
 .timer-progress {
@@ -74,7 +87,7 @@ li {
 .task {
     margin-top: -2rem;
     color: var(--merlot);
-    font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
     font-size: 2rem;
     font-style: italic;
     font-weight: 500;
@@ -101,7 +114,7 @@ input[type="text"] {
     padding: 12px 14px;
     border-radius: 12px;
     color: var(--text-main);
-    width: 320px;
+    width: 50%;
     max-width: 90%;
     transition: border-color 0.12s ease, box-shadow 0.12s ease, transform 0.08s ease;
 }
@@ -116,17 +129,43 @@ input[type="text"]::placeholder {
     font-style: italic;
 }
 
-button {
-    background-color: var(--green);
+.task-text {
+    display: none;
+    font-size: 1.5rem;
+    color: var(--text-main);
+    padding-bottom: 1rem;
+}
+
+.start-btn,
+.pause-btn,
+.stop-btn {
     color: var(--white-smoke);
     border: none;
     border-radius: 10px;
     padding: 12px 24px;
     font-weight: bold;
     cursor: pointer;
-    transition: all 0.3s ease-in-out;
+    transition: all 0.2s ease-in-out;
 }
 
-button:hover {
-    background: rgb(103, 136, 68);
+.start-btn {
+    background-color: var(--green);
+}
+
+.pause-btn {
+    background-color: var(--pause);
+}
+
+.stop-btn {
+    background-color: var(--stop);
+}
+
+.start-btn:hover,
+.pause-btn:hover,
+.stop-btn:hover {
+    filter: brightness(0.9);
+}
+
+.stop-btns {
+    display: none;
 }
