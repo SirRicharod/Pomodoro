@@ -1,31 +1,35 @@
 :root {
-    /* CSS HEX */
-    --text-main: #4A1C1B;
-    --merlot: #722F37;
-    --white-smoke: #f5f5f5ff;
-    --beige: #f2e2baff;
-    --green: #86a861ff;
-    --brown: #a44a3fff;
-    --pause: rgb(237, 193, 80);
-    --stop: rgb(237, 83, 80);
+    /* ===== COLOR PALETTE =====
+       Named by PURPOSE, not by color — so they still make sense
+       if the user changes green to blue, or beige to gray. */
+    --color-text:     #4a1c1b;   /* Main body text */
+    --color-accent:   #722f37;   /* Headings, labels, settings icon */
+    --color-surface:  #f5f5f5;   /* Cards, inputs, panel backgrounds */
+    --color-bg:       #f2e2ba;   /* Page background */
+    --color-success:  #86a861;   /* Start button, completed progress */
+    --color-progress: #a44a3f;   /* In-progress steps */
+    --color-pause:    #edc150;   /* Pause button */
+    --color-danger:   #ed5350;   /* Stop button, error highlights */
 }
 
+/* ===== BASE ===== */
 body {
-    background-color: var(--beige);
-    color: var(--text-main);
+    background-color: var(--color-bg);
+    color: var(--color-text);
     overflow: hidden;
     user-select: none;
 }
 
+/* ===== HEADER (date, clock, settings) ===== */
 .date {
     font-size: 1rem;
     font-weight: 400;
-    color: var(--merlot);
+    color: var(--color-accent);
 }
 
 .time {
     font-size: 1.5rem;
-    background: whitesmoke;
+    background: var(--color-surface);
     padding: 0.25rem 1rem;
     border-radius: 10px;
     font-weight: 500;
@@ -33,29 +37,32 @@ body {
     min-width: 8ch;
     text-align: center;
     font-variant-numeric: tabular-nums;
-    -webkit-font-feature-settings: "tnum" 1;
-    font-feature-settings: "tnum" 1;
 }
 
 .settings {
     font-size: 2rem;
     padding: 1rem;
-    color: var(--merlot);
+    color: var(--color-accent);
+    cursor: pointer;
+    transition: transform 0.3s ease;
 }
 
+.settings:hover {
+    transform: rotate(90deg);
+}
+
+/* ===== TIMER ===== */
 .timer {
     font-size: 5rem;
     margin-bottom: -5rem;
     font-family: "Fjalla One", sans-serif;
     font-weight: 400;
-    font-style: normal;
     min-width: 8ch;
     text-align: center;
     font-variant-numeric: tabular-nums;
-    -webkit-font-feature-settings: "tnum" 1;
-    font-feature-settings: "tnum" 1;
 }
 
+/* ===== PROGRESS INDICATORS ===== */
 .timer-progress {
     font-size: 2rem;
     padding: 1rem;
@@ -63,15 +70,15 @@ body {
 }
 
 .inprogress {
-    color: var(--brown);
+    color: var(--color-progress);
 }
 
 .active {
-    color: var(--merlot);
+    color: var(--color-accent);
 }
 
 .completed {
-    color: var(--green);
+    color: var(--color-success);
 }
 
 ul {
@@ -82,15 +89,17 @@ li {
     display: inline;
 }
 
+/* ===== POMODORO IMAGE ===== */
 .pomodoro {
     width: 450px;
     height: auto;
     margin: 3rem;
 }
 
+/* ===== TASK SECTION ===== */
 .task {
     margin-top: -2rem;
-    color: var(--merlot);
+    color: var(--color-accent);
     font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
     font-size: 2rem;
     font-style: italic;
@@ -108,16 +117,17 @@ li {
     max-width: 300px;
     height: 2px;
     margin: -0.5rem auto 0;
-    background: var(--merlot);
+    background: var(--color-accent);
     border-radius: 10px;
 }
 
+/* ===== TEXT INPUT ===== */
 input[type="text"] {
-    background-color: var(--white-smoke);
+    background-color: var(--color-surface);
     border: 2px solid transparent;
     padding: 12px 14px;
     border-radius: 12px;
-    color: var(--text-main);
+    color: var(--color-text);
     width: 50%;
     max-width: 90%;
     transition: border-color 0.12s ease, box-shadow 0.12s ease, transform 0.08s ease;
@@ -125,43 +135,45 @@ input[type="text"] {
 
 input[type="text"]:focus {
     outline: none;
-    border: 2px solid var(--green);
+    border-color: var(--color-success);
 }
 
 input[type="text"]::placeholder {
-    color: rgba(20, 20, 20, 0.5);
+    color: var(--color-text);
+    opacity: 0.45;
     font-style: italic;
 }
 
 .task-text {
     display: none;
     font-size: 1.5rem;
-    color: var(--text-main);
+    color: var(--color-text);
     padding-bottom: 1rem;
 }
 
+/* ===== BUTTONS ===== */
 .start-btn,
 .pause-btn,
 .stop-btn {
-    color: var(--white-smoke);
+    color: var(--color-surface);
     border: none;
     border-radius: 10px;
     padding: 12px 24px;
     font-weight: bold;
     cursor: pointer;
-    transition: all 0.2s ease-in-out;
+    transition: filter 0.2s ease-in-out;
 }
 
 .start-btn {
-    background-color: var(--green);
+    background-color: var(--color-success);
 }
 
 .pause-btn {
-    background-color: var(--pause);
+    background-color: var(--color-pause);
 }
 
 .stop-btn {
-    background-color: var(--stop);
+    background-color: var(--color-danger);
 }
 
 .start-btn:hover,
@@ -172,4 +184,145 @@ input[type="text"]::placeholder {
 
 .stop-btns {
     display: none;
+}
+
+.new-task-btn {
+    display: none;
+    color: var(--color-surface);
+    background-color: var(--color-success);
+    border: none;
+    border-radius: 10px;
+    padding: 12px 24px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: filter 0.2s ease-in-out;
+    animation: fadeIn 0.5s ease;
+}
+
+.new-task-btn:hover {
+    filter: brightness(0.9);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== SETTINGS PANEL ===== */
+.settings-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 99;
+}
+
+.settings-overlay.open {
+    display: block;
+}
+
+.settings-panel {
+    position: fixed;
+    top: 0;
+    right: -320px;
+    width: 300px;
+    height: 100%;
+    background: var(--color-surface);
+    box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
+    z-index: 100;
+    transition: right 0.3s ease;
+    overflow-y: auto;
+    border-radius: 16px 0 0 16px;
+}
+
+.settings-panel.open {
+    right: 0;
+}
+
+.settings-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    color: var(--color-accent);
+}
+
+.settings-header h5 {
+    margin: 0;
+    font-weight: 600;
+}
+
+.settings-close {
+    font-size: 1.75rem;
+    cursor: pointer;
+    line-height: 1;
+    color: var(--color-text);
+    transition: color 0.2s;
+}
+
+.settings-close:hover {
+    color: var(--color-danger);
+}
+
+.settings-body {
+    padding: 1rem 1.25rem;
+}
+
+.color-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.color-row label {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--color-text);
+}
+
+.color-row input[type="color"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 40px;
+    height: 32px;
+    border: 2px solid rgba(0, 0, 0, 0.15);
+    border-radius: 8px;
+    cursor: pointer;
+    padding: 2px;
+    background: none;
+}
+
+.color-row input[type="color"]::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+
+.color-row input[type="color"]::-webkit-color-swatch {
+    border: none;
+    border-radius: 5px;
+}
+
+.settings-actions {
+    margin-top: 1rem;
+    text-align: center;
+}
+
+.reset-colors-btn {
+    background: var(--color-accent);
+    color: var(--color-surface);
+    border: none;
+    border-radius: 8px;
+    padding: 8px 20px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: filter 0.2s;
+}
+
+.reset-colors-btn:hover {
+    filter: brightness(0.85);
 }

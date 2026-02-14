@@ -5,6 +5,7 @@
 // These values get "baked into" the JavaScript when the page loads.
 $workDuration = 25 * 60;   // 25 minutes = 1500 seconds
 $breakDuration = 5 * 60;   // 5 minutes  = 300 seconds
+$longBreakDuration = 15 * 60; // 15 minutes = 900 seconds (after session 4)
 $totalSessions = 4;        // 4 pomodoro cycles before done
 ?>
 <!DOCTYPE html>
@@ -40,14 +41,60 @@ $totalSessions = 4;        // 4 pomodoro cycles before done
                     <?php echo date("D, d/m/Y") ?>
                 </div>
                 <div class="time" id="time">
-                    10:25:55
+                    04:20:69
                 </div>
             </div>
-            <div class="settings">
+            <div class="settings" onclick="toggleSettings()">
                 <i class="bi bi-gear"></i>
             </div>
         </div>
     </section>
+
+    <!-- ===== SETTINGS PANEL ===== -->
+    <div id="settings-panel" class="settings-panel">
+        <div class="settings-header">
+            <h5>Color Settings</h5>
+            <span class="settings-close" onclick="toggleSettings()">&times;</span>
+        </div>
+        <div class="settings-body">
+            <div class="color-row">
+                <label for="color-bg">Background</label>
+                <input type="color" id="color-bg" data-var="--color-bg" value="#f2e2ba">
+            </div>
+            <div class="color-row">
+                <label for="color-text">Text</label>
+                <input type="color" id="color-text" data-var="--color-text" value="#4a1c1b">
+            </div>
+            <div class="color-row">
+                <label for="color-accent">Accent</label>
+                <input type="color" id="color-accent" data-var="--color-accent" value="#722f37">
+            </div>
+            <div class="color-row">
+                <label for="color-surface">Surface</label>
+                <input type="color" id="color-surface" data-var="--color-surface" value="#f5f5f5">
+            </div>
+            <div class="color-row">
+                <label for="color-success">Start / Complete</label>
+                <input type="color" id="color-success" data-var="--color-success" value="#86a861">
+            </div>
+            <div class="color-row">
+                <label for="color-progress">Progress</label>
+                <input type="color" id="color-progress" data-var="--color-progress" value="#a44a3f">
+            </div>
+            <div class="color-row">
+                <label for="color-pause">Pause Button</label>
+                <input type="color" id="color-pause" data-var="--color-pause" value="#edc150">
+            </div>
+            <div class="color-row">
+                <label for="color-danger">Stop Button</label>
+                <input type="color" id="color-danger" data-var="--color-danger" value="#ed5350">
+            </div>
+            <div class="settings-actions">
+                <button class="reset-colors-btn" onclick="resetColors()">Reset to Defaults</button>
+            </div>
+        </div>
+    </div>
+    <div id="settings-overlay" class="settings-overlay" onclick="toggleSettings()"></div>
 
     <section class="d-flex justify-content-center align-content-center text-center">
         <div>
@@ -108,12 +155,12 @@ $totalSessions = 4;        // 4 pomodoro cycles before done
                 <button class="pause-btn" onclick="PauseTimer()">Pause Timer</button>
                 <button class="stop-btn" onclick="StopTimer()">Stop Timer</button>
             </div>
+
+            <button onclick="StartNewTask()" id="new-task-btn" class="new-task-btn">Start Another Task</button>
         </div>
     </section>
 
-</body>
-
-<script>
+    <script>
     // ===== DOM ELEMENTS =====
     const curTime = document.getElementById("time");
     const inputTask = document.getElementById("task-input");
@@ -121,34 +168,59 @@ $totalSessions = 4;        // 4 pomodoro cycles before done
     const startBtn = document.getElementById("start-btn");
     const stopBtns = document.getElementById("stop-btns");
     const pauseBtn = document.querySelector(".pause-btn");
+    const newTaskBtn = document.getElementById("new-task-btn");
     const timerDisplay = document.querySelector(".timer");
     const progress = document.querySelectorAll(".timer-progress li");
 
     // ===== TIMER CONFIGURATION (from PHP) =====
-    // PHP injects these values at page load. Open "View Source" in your
-    // browser and you'll see the actual numbers instead of PHP tags!
-    const WORK_DURATION  = <?php echo $workDuration; ?>;   // seconds
-    const BREAK_DURATION = <?php echo $breakDuration; ?>;   // seconds
-    const TOTAL_SESSIONS = <?php echo $totalSessions; ?>;   // cycles
+    const WORK_DURATION       = <?php echo $workDuration; ?>;      // 25 min
+    const BREAK_DURATION      = <?php echo $breakDuration; ?>;     // 5 min
+    const LONG_BREAK_DURATION = <?php echo $longBreakDuration; ?>; // 15 min
+    const TOTAL_SESSIONS      = <?php echo $totalSessions; ?>;     // 4 cycles
+
+    // ===== STEP MAP =====
+    // The progress bar has 9 <li> elements (indices 0-8):
+    //   0=circle-1, 1=arrow, 2=circle-2, 3=arrow,
+    //   4=circle-3, 5=arrow, 6=circle-4, 7=arrow, 8=checkmark
+    //
+    // Circles (even: 0,2,4,6) = work sessions (25 min)
+    // Arrows  (odd:  1,3,5)   = short breaks  (5 min)
+    // Arrow at index 7        = long break    (15 min)
+    // Checkmark at index 8    = auto-complete (no timer)
+    //
+    // We walk through steps 0→1→2→3→4→5→6→7→8 sequentially.
+    function getStepDuration(stepIndex) {
+        if (stepIndex % 2 === 0) return WORK_DURATION;        // circle = work
+        if (stepIndex === 7)     return LONG_BREAK_DURATION;  // last arrow = long break
+        return BREAK_DURATION;                                // other arrows = short break
+    }
+
+    function getStepLabel(stepIndex) {
+        if (stepIndex % 2 === 0) return "FOCUS";
+        if (stepIndex === 7)     return "LONG BREAK";
+        return "BREAK";
+    }
+
+    // ===== SOUND EFFECTS =====
+    // The Audio constructor creates a playable sound object from a file.
+    // new Audio("path") loads the file, then .play() plays it.
+    // We create them once here so the browser pre-loads the files —
+    // if we created them inside tick(), there'd be a delay each time.
+    const dingSound     = new Audio("ding.wav");      // plays between steps
+    const finishedSound = new Audio("finished.wav");  // plays when all done
 
     // ===== TIMER STATE =====
-    // These variables track everything about the running timer.
-    let timeRemaining = WORK_DURATION; // countdown in seconds
-    let timerInterval = null;          // holds the setInterval ID
-    let isPaused = false;              // is the timer paused?
-    let currentSession = 1;            // which pomodoro are we on? (1-4)
-    let isBreak = false;               // are we in a break right now?
+    let currentStep = 0;           // which step in the progress bar (0-8)
+    let timeRemaining = WORK_DURATION;
+    let timerInterval = null;
+    let isPaused = false;
 
     // ===== CLOCK (top-left) =====
     function updateClock() {
         const now = new Date();
-        const options = {
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-            hour12: false
-        };
-        curTime.innerHTML = now.toLocaleString('en-GB', options);
+        curTime.innerHTML = now.toLocaleString('en-GB', {
+            hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+        });
     }
     setInterval(updateClock, 1000);
     updateClock();
@@ -161,36 +233,17 @@ $totalSessions = 4;        // 4 pomodoro cycles before done
             String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
     }
 
-    // ===== HELPER: Update the progress indicators (1→2→3→4→✓) =====
-    // The <li> elements are laid out as:
-    //   index 0 = circle-1, 1 = arrow, 2 = circle-2, 3 = arrow,
-    //   4 = circle-3, 5 = arrow, 6 = circle-4, 7 = arrow, 8 = checkmark
+    // ===== HELPER: Update progress bar highlights =====
+    // Steps before currentStep → completed (green)
+    // The currentStep itself   → active (highlighted)
+    // Steps after currentStep  → inprogress (dim)
     function updateProgress() {
-        progress.forEach(li => {
-            li.classList.remove('active', 'completed');
-            li.classList.add('inprogress');
+        progress.forEach((li, i) => {
+            li.classList.remove('active', 'completed', 'inprogress');
+            if (i < currentStep)       li.classList.add('completed');
+            else if (i === currentStep) li.classList.add('active');
+            else                        li.classList.add('inprogress');
         });
-
-        // Mark completed sessions green
-        for (let s = 1; s < currentSession; s++) {
-            const circleIdx = (s - 1) * 2;
-            const arrowIdx  = circleIdx + 1;
-            progress[circleIdx].classList.replace('inprogress', 'completed');
-            if (arrowIdx < progress.length) {
-                progress[arrowIdx].classList.replace('inprogress', 'completed');
-            }
-        }
-
-        // Highlight the current session
-        if (currentSession <= TOTAL_SESSIONS) {
-            const currentIdx = (currentSession - 1) * 2;
-            progress[currentIdx].classList.replace('inprogress', 'active');
-        }
-
-        // If all done, light up the final checkmark
-        if (currentSession > TOTAL_SESSIONS) {
-            progress[progress.length - 1].classList.replace('inprogress', 'completed');
-        }
     }
 
     // ===== CORE: The "tick" function runs every second =====
@@ -202,115 +255,204 @@ $totalSessions = 4;        // 4 pomodoro cycles before done
             clearInterval(timerInterval);
             timerInterval = null;
 
-            if (!isBreak) {
-                // A work session just finished
-                if (currentSession >= TOTAL_SESSIONS) {
-                    // That was the last session — we're done!
-                    currentSession++;
-                    updateProgress();
-                    timerDisplay.textContent = "DONE!";
-                    alert("All " + TOTAL_SESSIONS + " pomodoro sessions complete! Great work!");
-                    StopTimer();
-                    return;
-                }
-                // Otherwise, switch to a break
-                isBreak = true;
-                timeRemaining = BREAK_DURATION;
-                timerDisplay.textContent = "BREAK";
-                setTimeout(() => {
-                    updateTimerDisplay();
-                    timerInterval = setInterval(tick, 1000);
-                }, 1500);
-            } else {
-                // A break just finished — move to next work session
-                isBreak = false;
-                currentSession++;
-                updateProgress();
-                timeRemaining = WORK_DURATION;
+            // Move to the next step
+            currentStep++;
+            updateProgress();
+
+            // Play the "ding" sound to signal this step is done.
+            // .currentTime = 0 rewinds to the start in case it's
+            // still playing from a previous step.
+            dingSound.currentTime = 0;
+            dingSound.play();
+
+            // Step 8 = checkmark → session complete!
+            if (currentStep >= progress.length - 1) {
+                completeSession();
+                return;
+            }
+
+            // Otherwise, start the next step (work or break)
+            const label = getStepLabel(currentStep);
+            timerDisplay.textContent = label;
+            timeRemaining = getStepDuration(currentStep);
+
+            // Brief pause to show the label, then start counting
+            setTimeout(() => {
                 updateTimerDisplay();
                 timerInterval = setInterval(tick, 1000);
-            }
+            }, 1500);
         }
+    }
+
+    // ===== COMPLETE: All sessions done =====
+    function completeSession() {
+        // Light up the checkmark
+        currentStep = progress.length - 1;
+        progress.forEach(li => {
+            li.classList.remove('active', 'inprogress');
+            li.classList.add('completed');
+        });
+
+        timerDisplay.textContent = "DONE!";
+
+        // Play the completion sound
+        finishedSound.currentTime = 0;
+        finishedSound.play();
+
+        // Hide pause/stop, show "Start Another Task"
+        stopBtns.style.display = "none";
+        newTaskBtn.style.display = "inline-block";
     }
 
     // ===== START: Begin the pomodoro =====
     function StartTimer() {
-        // Don't start without a task name
         if (inputTask.value.trim() === "") {
-            inputTask.style.border = "2px solid var(--stop)";
+            inputTask.style.borderColor = "var(--color-danger)";
             inputTask.setAttribute("placeholder", "Please enter a task first!");
             setTimeout(() => {
-                inputTask.style.border = "2px solid transparent";
+                inputTask.style.borderColor = "transparent";
                 inputTask.setAttribute("placeholder", "What task should we focus on?");
             }, 2000);
             return;
         }
 
-        // Show the task name, hide the input
         inputTask.style.display = "none";
         textTask.style.display = "block";
         textTask.textContent = inputTask.value;
         stopBtns.style.display = "block";
         startBtn.style.display = "none";
+        newTaskBtn.style.display = "none";
 
-        // Initialize timer state
-        timeRemaining = WORK_DURATION;
-        currentSession = 1;
-        isBreak = false;
+        // Initialize state at step 0 (first work session)
+        currentStep = 0;
+        timeRemaining = getStepDuration(0);
         isPaused = false;
 
         updateTimerDisplay();
         updateProgress();
 
-        // Start the countdown — tick() runs every 1 second
         timerInterval = setInterval(tick, 1000);
     }
 
-    // ===== STOP: Cancel everything and go back to default =====
+    // ===== STOP: Cancel and reset to default =====
     function StopTimer() {
-        // 1. Clear the running interval
         if (timerInterval) {
             clearInterval(timerInterval);
             timerInterval = null;
         }
 
-        // 2. Reset all state variables
         isPaused = false;
-        isBreak = false;
-        currentSession = 1;
+        currentStep = 0;
         timeRemaining = WORK_DURATION;
 
-        // 3. Reset the display
         updateTimerDisplay();
         inputTask.style.display = "inline-block";
         inputTask.value = "";
         textTask.style.display = "none";
         startBtn.style.display = "inline-block";
         stopBtns.style.display = "none";
+        newTaskBtn.style.display = "none";
         pauseBtn.textContent = "Pause Timer";
 
-        // 4. Reset progress indicators
         progress.forEach(li => {
             li.classList.remove('active', 'completed');
             li.classList.add('inprogress');
         });
     }
 
-    // ===== PAUSE / RESUME: Toggle the countdown =====
+    // ===== NEW TASK: Reset for a fresh session =====
+    function StartNewTask() {
+        StopTimer();
+    }
+
+    // ===== PAUSE / RESUME =====
     function PauseTimer() {
         if (!isPaused) {
-            // Pause — stop the interval but keep timeRemaining
             clearInterval(timerInterval);
             timerInterval = null;
             isPaused = true;
             pauseBtn.textContent = "Resume Timer";
         } else {
-            // Resume — restart the interval from where we left off
             isPaused = false;
             pauseBtn.textContent = "Pause Timer";
             timerInterval = setInterval(tick, 1000);
         }
     }
-</script>
 
+    // ===== SETTINGS PANEL =====
+    const settingsPanel = document.getElementById('settings-panel');
+    const settingsOverlay = document.getElementById('settings-overlay');
+    const colorInputs = document.querySelectorAll('.color-row input[type="color"]');
+
+    // Default colors — must match :root in style.css
+    const defaultColors = {
+        '--color-text':     '#4a1c1b',
+        '--color-accent':   '#722f37',
+        '--color-surface':  '#f5f5f5',
+        '--color-bg':       '#f2e2ba',
+        '--color-success':  '#86a861',
+        '--color-progress': '#a44a3f',
+        '--color-pause':    '#edc150',
+        '--color-danger':   '#ed5350'
+    };
+
+    // Toggle the settings panel open/closed
+    function toggleSettings() {
+        settingsPanel.classList.toggle('open');
+        settingsOverlay.classList.toggle('open');
+    }
+
+    // Apply a single CSS variable change to the :root element
+    function applyColor(varName, value) {
+        document.documentElement.style.setProperty(varName, value);
+    }
+
+    // When any color picker changes, apply it live and save to localStorage
+    colorInputs.forEach(input => {
+        input.addEventListener('input', (e) => {
+            const varName = e.target.dataset.var;  // e.g. "--color-bg"
+            const value = e.target.value;           // e.g. "#ff0000"
+            applyColor(varName, value);
+            saveColors();
+        });
+    });
+
+    // Save all current color picker values to localStorage
+    function saveColors() {
+        const colors = {};
+        colorInputs.forEach(input => {
+            colors[input.dataset.var] = input.value;
+        });
+        localStorage.setItem('pomodoroColors', JSON.stringify(colors));
+    }
+
+    // Load saved colors from localStorage (runs on page load)
+    function loadColors() {
+        const saved = localStorage.getItem('pomodoroColors');
+        if (saved) {
+            const colors = JSON.parse(saved);
+            for (const [varName, value] of Object.entries(colors)) {
+                applyColor(varName, value);
+                // Also update the color picker to show the saved value
+                const input = document.querySelector(`input[data-var="${varName}"]`);
+                if (input) input.value = value;
+            }
+        }
+    }
+
+    // Reset everything back to the original CSS defaults
+    function resetColors() {
+        for (const [varName, value] of Object.entries(defaultColors)) {
+            applyColor(varName, value);
+            const input = document.querySelector(`input[data-var="${varName}"]`);
+            if (input) input.value = value;
+        }
+        localStorage.removeItem('pomodoroColors');
+    }
+
+    // Load any saved colors when the page first loads
+    loadColors();
+    </script>
+
+</body>
 </html>
