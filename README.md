@@ -1,1 +1,1 @@
-# A Simple Pomodoro Timer Built with PHP
+# A Simple Pomodoro Timer
