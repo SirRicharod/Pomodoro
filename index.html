@@ -200,6 +200,7 @@
     let timeRemaining = WORK_DURATION;
     let timerInterval = null;
     let isPaused = false;
+    let targetEndTime = null;   // wall-clock ms when the current step should finish
 
     // ===== DATE DISPLAY (replaces PHP date()) =====
     function updateDate() {
@@ -242,8 +243,10 @@
     }
 
     // ===== CORE: The "tick" function runs every second =====
+    // Uses wall-clock time so background-tab throttling cannot stall the timer.
     function tick() {
-        timeRemaining--;
+        const now = Date.now();
+        timeRemaining = Math.max(0, Math.round((targetEndTime - now) / 1000));
         updateTimerDisplay();
 
         if (timeRemaining <= 0) {
@@ -266,6 +269,7 @@
             timeRemaining = getStepDuration(currentStep);
 
             setTimeout(() => {
+                targetEndTime = Date.now() + timeRemaining * 1000;
                 updateTimerDisplay();
                 timerInterval = setInterval(tick, 1000);
             }, 1500);
@@ -315,6 +319,7 @@
         updateTimerDisplay();
         updateProgress();
 
+        targetEndTime = Date.now() + timeRemaining * 1000;
         timerInterval = setInterval(tick, 1000);
     }
 
@@ -359,6 +364,7 @@
         } else {
             isPaused = false;
             pauseBtn.textContent = "Pause Timer";
+            targetEndTime = Date.now() + timeRemaining * 1000;
             timerInterval = setInterval(tick, 1000);
         }
     }
